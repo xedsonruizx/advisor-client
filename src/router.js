@@ -9,6 +9,7 @@ import Posts from './views/Posts.vue'
 import PostDetail from './views/PostDetail.vue'
 import Users from './views/admin/Users.vue'
 import Payments from './views/admin/Payments.vue'
+import FAQ from './views/FAQ.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -19,6 +20,7 @@ const routes = [
   { path: '/dashboard', component: Dashboard },
   { path: '/posts', component: Posts },
   { path: '/posts/:id', component: PostDetail },
+  { path: '/faq', component: FAQ },
   { path: '/admin/users', component: Users },
   { path: '/admin/payments', component: Payments }
 ]

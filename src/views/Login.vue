@@ -39,12 +39,20 @@
                   <input 
                     id="password"
                     v-model="password" 
-                    class="form-control bg-light border-start-0 ps-0" 
-                    type="password" 
+                    class="form-control bg-light border-start-0 border-end-0 ps-0" 
+                    :type="showPassword ? 'text' : 'password'" 
                     placeholder="••••••••••••" 
                     required 
                   />
+                  <button class="btn btn-light border border-start-0 text-muted" type="button" @click="showPassword = !showPassword">
+                    <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                  </button>
                 </div>
+              </div>
+
+              <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe" v-model="rememberMe">
+                <label class="form-check-label small text-muted" for="rememberMe">Recordar usuario</label>
               </div>
 
               <button class="btn btn-primary w-100 mb-4 py-2" :disabled="loading">
@@ -79,12 +87,14 @@ const router = useRouter()
 const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
+const rememberMe = ref(false)
+const showPassword = ref(false)
 
 const loading = computed(() => auth.loading)
 const error = computed(() => auth.error)
 
 async function submit() {
-  await auth.login({ email: email.value, password: password.value })
+  await auth.login({ email: email.value, password: password.value, rememberMe: rememberMe.value })
   if (!error.value) {
     router.push('/dashboard')
   }

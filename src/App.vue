@@ -13,6 +13,7 @@
             <li class="nav-item"><router-link class="nav-link" to="/">Inicio</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/memberships">Membresías</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/posts">Avisos</router-link></li>
+            <li class="nav-item"><router-link class="nav-link" to="/faq">Preguntas</router-link></li>
             
             <li v-if="!user" class="nav-item ms-lg-3"><router-link class="btn btn-outline-primary btn-sm px-4" to="/login">Ingresar</router-link></li>
             <li v-if="!user" class="nav-item ms-2"><router-link class="btn btn-primary btn-sm px-4" to="/register">Registrarse</router-link></li>
@@ -51,6 +52,7 @@
             <ul class="list-unstyled">
               <li><router-link to="/">Inicio</router-link></li>
               <li><router-link to="/memberships">Planes</router-link></li>
+              <li><router-link to="/faq">Preguntas</router-link></li>
               <li><router-link to="/login">Ingresar</router-link></li>
             </ul>
           </div>
