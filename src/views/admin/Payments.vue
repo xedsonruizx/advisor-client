@@ -1,10 +1,8 @@
 <template>
-  <div class="container py-4">
-    <h2 class="mb-4">Historial de Pagos</h2>
+  <div class="container py-5">
+    <PageHeader title="Historial de Pagos" />
     
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
+    <LoadingSpinner v-if="loading" />
 
     <div v-else class="card shadow-sm border-0">
       <div class="table-responsive">
@@ -47,6 +45,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import PageHeader from '../../components/global/PageHeader.vue'
+import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
 
 const payments = ref([])
 const loading = ref(true)

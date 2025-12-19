@@ -1,27 +1,27 @@
 <template>
   <div class="container py-5">
     <!-- Header Section -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
-      <div>
-        <h2 class="display-6 fw-bold text-dark mb-1">Gestión de Usuarios</h2>
-        <p class="text-muted mb-0">Administra accesos, roles y membresías</p>
-      </div>
-      <div class="d-flex gap-3 w-100 w-md-auto">
-        <div class="input-group shadow-sm">
-          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-          <input v-model="search" type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre o email...">
-        </div>
+    <PageHeader 
+      title="Gestión de Usuarios" 
+      subtitle="Administra accesos, roles y membresías"
+    >
+      <template #actions>
         <button class="btn btn-primary shadow-sm text-nowrap" @click="openCreateModal">
           <i class="bi bi-person-plus-fill me-2"></i>Nuevo Usuario
         </button>
+      </template>
+    </PageHeader>
+
+    <div class="row justify-content-end mb-4">
+      <div class="col-12 col-md-6 col-lg-4">
+        <SearchInput 
+          v-model="search" 
+          placeholder="Buscar por nombre o email..." 
+        />
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-    </div>
+    <LoadingSpinner v-if="loading" />
 
     <!-- Users Table Card -->
     <div v-else class="card border-0 shadow-lg overflow-hidden">
@@ -85,74 +85,69 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showModal" class="modal d-block" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-          <div class="modal-header bg-dark text-white" style="background-color: var(--primary-color) !important;">
-            <h5 class="modal-title fw-bold text-white">
-              <i class="bi" :class="isEditing ? 'bi-pencil-square' : 'bi-person-plus-fill'"></i>
-              {{ isEditing ? 'Editar Usuario' : 'Nuevo Usuario' }}
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @click="closeModal"></button>
+    <BaseModal 
+      :show="showModal" 
+      :title="isEditing ? 'Editar Usuario' : 'Nuevo Usuario'" 
+      @close="closeModal"
+    >
+      <form @submit.prevent="saveUser">
+        <div class="mb-3">
+          <label class="form-label text-muted small fw-bold text-uppercase">Nombre Completo</label>
+          <input v-model="form.name" class="form-control" required placeholder="Ej. Juan Pérez">
+        </div>
+        
+        <div class="mb-3" v-if="!isEditing">
+          <label class="form-label text-muted small fw-bold text-uppercase">Correo Electrónico</label>
+          <input v-model="form.email" type="email" class="form-control" required placeholder="nombre@ejemplo.com">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-muted small fw-bold text-uppercase">
+            {{ isEditing ? 'Nueva Contraseña (Opcional)' : 'Contraseña' }}
+          </label>
+          <input v-model="form.password" type="password" class="form-control" :required="!isEditing" placeholder="••••••••">
+          <small v-if="isEditing" class="text-muted">Dejar en blanco para mantener la actual.</small>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted small fw-bold text-uppercase">Rol</label>
+            <select v-model="form.roleId" class="form-select">
+              <option value="" disabled>Seleccionar Rol</option>
+              <option v-for="role in roles" :key="role.id" :value="role.id">
+                {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }}
+              </option>
+            </select>
           </div>
-          <div class="modal-body p-4">
-            <form @submit.prevent="saveUser">
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold text-uppercase">Nombre Completo</label>
-                <input v-model="form.name" class="form-control" required placeholder="Ej. Juan Pérez">
-              </div>
-              
-              <div class="mb-3" v-if="!isEditing">
-                <label class="form-label text-muted small fw-bold text-uppercase">Correo Electrónico</label>
-                <input v-model="form.email" type="email" class="form-control" required placeholder="nombre@ejemplo.com">
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold text-uppercase">
-                  {{ isEditing ? 'Nueva Contraseña (Opcional)' : 'Contraseña' }}
-                </label>
-                <input v-model="form.password" type="password" class="form-control" :required="!isEditing" placeholder="••••••••">
-                <small v-if="isEditing" class="text-muted">Dejar en blanco para mantener la actual.</small>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label text-muted small fw-bold text-uppercase">Rol</label>
-                  <select v-model="form.roleId" class="form-select">
-                    <option value="" disabled>Seleccionar Rol</option>
-                    <option v-for="role in roles" :key="role.id" :value="role.id">
-                      {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label text-muted small fw-bold text-uppercase">Membresía</label>
-                  <select v-model="form.membershipPlanId" class="form-select">
-                    <option value="">Gratuito</option>
-                    <option v-for="plan in plans" :key="plan.id" :value="plan.id">
-                      {{ plan.name }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <button type="button" class="btn btn-light" @click="closeModal">Cancelar</button>
-                <button type="submit" class="btn btn-primary px-4">
-                  {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
-                </button>
-              </div>
-            </form>
+          <div class="col-md-6 mb-3">
+            <label class="form-label text-muted small fw-bold text-uppercase">Membresía</label>
+            <select v-model="form.membershipPlanId" class="form-select">
+              <option value="">Gratuito</option>
+              <option v-for="plan in plans" :key="plan.id" :value="plan.id">
+                {{ plan.name }}
+              </option>
+            </select>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-light" @click="closeModal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">
+            {{ isEditing ? 'Guardar Cambios' : 'Crear Usuario' }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import PageHeader from '../../components/global/PageHeader.vue'
+import SearchInput from '../../components/global/SearchInput.vue'
+import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
+import BaseModal from '../../components/global/BaseModal.vue'
 
 const users = ref([])
 const plans = ref([])
@@ -200,16 +195,11 @@ async function fetchPlans() {
 async function fetchRoles() {
   try {
     const { data } = await axios.get('/users/roles')
-    console.log('Roles loaded:', data) // Debug
     if (Array.isArray(data)) {
       roles.value = data
-    } else {
-      console.error('Roles response is not an array:', data)
     }
   } catch (e) { 
     console.error('Error loading roles:', e)
-    // Fallback if API fails (temporary fix to ensure UI works)
-    // Using hardcoded UUIDs from known seed/check_roles.js to ensure matches work even if API call fails
     roles.value = [
       { id: 'cfe5ac5d-6f42-464a-89e5-8e11fff58a7c', name: 'Client' },
       { id: 'a9abac90-1ec8-453a-855a-5fe4865648c3', name: 'Advisor' },
@@ -248,7 +238,6 @@ function getPlanBadge(planId) {
 
 function openCreateModal() {
   isEditing.value = false
-  // Default to 'client' role if available, otherwise first role
   const clientRole = roles.value.find(r => r.name === 'client')
   
   form.value = {
@@ -267,7 +256,7 @@ function editUser(user) {
   form.value = {
     id: user.id,
     name: user.name,
-    email: user.email, // Email usually read-only in edit for simplicity, but displayed
+    email: user.email, 
     password: '',
     roleId: user.role?.id || user.roleId || '',
     membershipPlanId: user.membershipPlanId || ''
@@ -286,7 +275,7 @@ async function saveUser() {
         name: form.value.name,
         roleId: form.value.roleId,
         membershipPlanId: form.value.membershipPlanId,
-        password: form.value.password || undefined // Only send if set
+        password: form.value.password || undefined 
       })
     } else {
       await axios.post('/users', {

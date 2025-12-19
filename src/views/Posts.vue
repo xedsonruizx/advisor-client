@@ -1,198 +1,122 @@
 <template>
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="mb-0">Avisos y Noticias</h2>
-      <button v-if="canCreate" class="btn btn-primary" @click="openCreateModal">
-        <i class="bi bi-plus-lg me-2"></i>Nuevo Aviso
-      </button>
-    </div>
+    <PageHeader title="Avisos y Noticias">
+      <template #actions>
+        <button v-if="canCreate" class="btn btn-primary" @click="openCreateModal">
+          <i class="bi bi-plus-lg me-2"></i>Nuevo Aviso
+        </button>
+      </template>
+    </PageHeader>
 
     <!-- Posts List -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
-    </div>
+    <LoadingSpinner v-if="loading" />
     
-    <div v-else-if="posts.length === 0" class="text-center py-5 bg-light rounded">
-      <p class="text-muted mb-0">No hay publicaciones disponibles.</p>
-    </div>
+    <EmptyState 
+      v-else-if="posts.length === 0" 
+      message="No hay publicaciones disponibles." 
+    />
 
     <div v-else class="row g-4">
       <div v-for="post in posts" :key="post.id" class="col-12 col-md-6 col-lg-4 d-flex align-items-stretch">
-        <div class="card shadow-sm border-0 w-100" :class="{ 'opacity-75': post.isLocked }">
-          
-          <!-- Admin Controls -->
-          <div v-if="canCreate" class="position-absolute top-0 end-0 p-2 z-index-10">
-            <div class="btn-group shadow-sm">
-              <button class="btn btn-light" @click="editPost(post)" title="Editar" style="border-radius: 50% 0 0 50%;">
-                <i class="bi bi-pencil-fill text-primary"></i>
-              </button>
-              <button class="btn btn-light" @click="confirmDelete(post)" title="Eliminar" style="border-radius: 0 50% 50% 0;">
-                <i class="bi bi-trash-fill text-danger"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Locked Overlay Header for Media -->
-          <div v-if="post.isLocked" class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-            <div class="text-center">
-              <i class="bi bi-lock-fill fs-1 mb-2"></i>
-              <p class="mb-0 fw-bold">Contenido Bloqueado</p>
-            </div>
-          </div>
-
-          <!-- Media Content (Only if unlocked and available) -->
-          <div v-else-if="post.mediaUrl" class="card-img-top bg-dark text-center overflow-hidden position-relative" style="height: 200px;">
-            <img v-if="post.mediaType === 'image'" :src="getProcessedMediaUrl(post.mediaUrl)" class="w-100 h-100" style="object-fit: cover;" :alt="post.title" @error="$event.target.style.display='none'">
-            <div v-if="post.mediaType === 'image'" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-secondary text-white" style="z-index: -1;">
-               <i class="bi bi-image fs-1"></i>
-            </div>
-
-            <video v-else-if="post.mediaType === 'video'" controls class="w-100 h-100" style="object-fit: contain;">
-              <source :src="getProcessedMediaUrl(post.mediaUrl)">
-              Tu navegador no soporta video.
-            </video>
-          </div>
-          
-          <div class="card-body d-flex flex-column p-4">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <span v-if="post.minPlan" class="badge bg-primary mb-2">
-                Plan {{ post.minPlan.name }}
-              </span>
-              <span v-else class="badge bg-success mb-2">Público</span>
-              <small class="text-muted">{{ new Date(post.createdAt).toLocaleDateString() }}</small>
-            </div>
-
-            <h5 class="card-title fw-bold text-dark">
-              <router-link v-if="!post.isLocked" :to="'/posts/' + post.id" target="_blank" class="text-decoration-none text-dark stretched-link">
-                {{ post.title }}
-              </router-link>
-              <span v-else class="text-dark">
-                {{ post.title }}
-              </span>
-            </h5>
-            
-            <p class="card-text text-muted mb-3 position-relative z-index-10">{{ post.shortDescription }}</p>
-            
-            <div v-if="!post.isLocked" class="card-text text-dark flex-grow-1 position-relative z-index-10" style="white-space: pre-line; font-size: 0.95rem;">
-              {{ post.content }}
-            </div>
-            
-            <div v-else class="mt-auto text-center pt-3 border-top position-relative z-index-10">
-               <div class="alert alert-warning d-flex align-items-center justify-content-center p-2 mb-3" role="alert">
-                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                 <small>Debes tener una suscripción activa para ver este contenido.</small>
-               </div>
-               <p class="small text-muted mb-2">
-                 Este contenido requiere el <strong>Plan {{ post.minPlan.name }}</strong> o superior.
-               </p>
-               <router-link v-if="!auth.isAuthenticated" to="/login" class="btn btn-outline-primary btn-sm w-100">
-                 Iniciar Sesión para ver
-               </router-link>
-               <router-link v-else to="/dashboard" class="btn btn-outline-primary btn-sm w-100">
-                 Mejorar mi Plan
-               </router-link>
-            </div>
-          </div>
-        </div>
+        <PostCard 
+          :post="post" 
+          :can-create="canCreate" 
+          :is-authenticated="auth.isAuthenticated"
+          @edit="editPost" 
+          @delete="confirmDelete" 
+        />
       </div>
     </div>
 
     <!-- Create/Edit Post Modal -->
-    <div v-if="showModal" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ isEditing ? 'Editar Aviso' : 'Crear Nuevo Aviso' }}</h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <BaseModal 
+      :show="showModal" 
+      :title="isEditing ? 'Editar Aviso' : 'Crear Nuevo Aviso'" 
+      size="lg"
+      @close="closeModal"
+    >
+      <form @submit.prevent="savePost" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Título</label>
+          <input 
+            v-model="postForm.title" 
+            class="form-control" 
+            :class="{ 'is-invalid': errors.title }"
+            required
+            @input="clearError('title')"
+          >
+          <div class="invalid-feedback">{{ errors.title }}</div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Descripción Corta</label>
+          <input 
+            v-model="postForm.shortDescription" 
+            class="form-control" 
+            :class="{ 'is-invalid': errors.shortDescription }"
+            required
+            @input="clearError('shortDescription')"
+          >
+          <div class="invalid-feedback">{{ errors.shortDescription }}</div>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Contenido Completo</label>
+          <textarea 
+            v-model="postForm.content" 
+            class="form-control" 
+            rows="5" 
+            :class="{ 'is-invalid': errors.content }"
+            required
+            @input="clearError('content')"
+          ></textarea>
+          <div class="invalid-feedback">{{ errors.content }}</div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">URL Multimedia (Drive/YouTube/Imagen)</label>
+            <input 
+              v-model="postForm.mediaUrl" 
+              class="form-control" 
+              placeholder="https://..."
+              :class="{ 'is-invalid': errors.mediaUrl }"
+              @input="clearError('mediaUrl')"
+            >
+            <div class="invalid-feedback">{{ errors.mediaUrl }}</div>
           </div>
-          <div class="modal-body">
-            <form @submit.prevent="savePost" novalidate>
-              <div class="mb-3">
-                <label class="form-label">Título</label>
-                <input 
-                  v-model="postForm.title" 
-                  class="form-control" 
-                  :class="{ 'is-invalid': errors.title }"
-                  required
-                  @input="clearError('title')"
-                >
-                <div class="invalid-feedback">{{ errors.title }}</div>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label">Descripción Corta</label>
-                <input 
-                  v-model="postForm.shortDescription" 
-                  class="form-control" 
-                  :class="{ 'is-invalid': errors.shortDescription }"
-                  required
-                  @input="clearError('shortDescription')"
-                >
-                <div class="invalid-feedback">{{ errors.shortDescription }}</div>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label">Contenido Completo</label>
-                <textarea 
-                  v-model="postForm.content" 
-                  class="form-control" 
-                  rows="5" 
-                  :class="{ 'is-invalid': errors.content }"
-                  required
-                  @input="clearError('content')"
-                ></textarea>
-                <div class="invalid-feedback">{{ errors.content }}</div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">URL Multimedia (Drive/YouTube/Imagen)</label>
-                  <input 
-                    v-model="postForm.mediaUrl" 
-                    class="form-control" 
-                    placeholder="https://..."
-                    :class="{ 'is-invalid': errors.mediaUrl }"
-                    @input="clearError('mediaUrl')"
-                  >
-                  <div class="invalid-feedback">{{ errors.mediaUrl }}</div>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Tipo de Medio</label>
-                  <select 
-                    v-model="postForm.mediaType" 
-                    class="form-select"
-                    :class="{ 'is-invalid': errors.mediaType }"
-                    @change="clearError('mediaType')"
-                  >
-                    <option value="">Ninguno</option>
-                    <option value="image">Imagen</option>
-                    <option value="video">Video</option>
-                  </select>
-                  <div class="invalid-feedback">{{ errors.mediaType }}</div>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Plan Mínimo Requerido</label>
-                <select v-model="postForm.minPlanId" class="form-select">
-                  <option value="">Público (Todos)</option>
-                  <option v-for="plan in plans" :key="plan.id" :value="plan.id">
-                    {{ plan.name }} (Nivel {{ plan.level }})
-                  </option>
-                </select>
-              </div>
-
-              <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">{{ isEditing ? 'Guardar Cambios' : 'Publicar' }}</button>
-              </div>
-            </form>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Tipo de Medio</label>
+            <select 
+              v-model="postForm.mediaType" 
+              class="form-select"
+              :class="{ 'is-invalid': errors.mediaType }"
+              @change="clearError('mediaType')"
+            >
+              <option value="">Ninguno</option>
+              <option value="image">Imagen</option>
+              <option value="video">Video</option>
+            </select>
+            <div class="invalid-feedback">{{ errors.mediaType }}</div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div class="mb-3">
+          <label class="form-label">Plan Mínimo Requerido</label>
+          <select v-model="postForm.minPlanId" class="form-select">
+            <option value="">Público (Todos)</option>
+            <option v-for="plan in plans" :key="plan.id" :value="plan.id">
+              {{ plan.name }} (Nivel {{ plan.level }})
+            </option>
+          </select>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" @click="closeModal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">{{ isEditing ? 'Guardar Cambios' : 'Publicar' }}</button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
@@ -200,7 +124,11 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
-import { getProcessedMediaUrl } from '../utils/helpers'
+import PageHeader from '../components/global/PageHeader.vue'
+import LoadingSpinner from '../components/global/LoadingSpinner.vue'
+import EmptyState from '../components/global/EmptyState.vue'
+import BaseModal from '../components/global/BaseModal.vue'
+import PostCard from '../components/posts/PostCard.vue'
 
 const auth = useAuthStore()
 const posts = ref([])
@@ -273,19 +201,13 @@ function editPost(post) {
     id: post.id,
     title: post.title,
     shortDescription: post.shortDescription,
-    content: post.content, // Note: if locked, this might be null. Admin view should probably fetch full details if not available.
+    content: post.content, 
     mediaUrl: post.mediaUrl || '',
     mediaType: post.mediaType || '',
-    minPlanId: post.minPlanId || '' // Check if API returns minPlanId in list. 
-    // Wait, the list API returns 'minPlan' object, not 'minPlanId' directly usually, unless included.
-    // The previous API call: include: { minPlan: true }. It doesn't explicitly select minPlanId, but prisma returns scalars by default.
-    // So post.minPlanId should be there.
+    minPlanId: post.minPlanId || '' 
   }
   
-  // If content is null (locked), we can't edit it properly from the list view.
-  // We should fetch the single post details first to be safe.
   if (post.isLocked) {
-     // Fetch full details
      axios.get(`/posts/${post.id}`).then(({ data }) => {
        postForm.value = {
          id: data.id,
@@ -350,14 +272,6 @@ function validateForm() {
   return isValid
 }
 
-// NOTE: Moved logic to utils/helpers.js but kept here if local usage was preferred. 
-// Now importing from helpers, so this local function is removed to avoid conflicts/duplication.
-/* 
-function getProcessedMediaUrl(url) {
- ...
-} 
-*/
-
 async function savePost() {
   if (!validateForm()) return
 
@@ -367,7 +281,6 @@ async function savePost() {
     if (!payload.mediaType) payload.mediaType = undefined
     if (!payload.minPlanId) payload.minPlanId = undefined
     
-    // Remove id from payload for create/update body
     const id = payload.id
     delete payload.id
 
@@ -384,9 +297,3 @@ async function savePost() {
   }
 }
 </script>
-
-<style scoped>
-.z-index-10 {
-  z-index: 10;
-}
-</style>

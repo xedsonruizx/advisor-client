@@ -85,6 +85,7 @@ import { useAuthStore } from './stores/auth'
 import { computed, onMounted } from 'vue'
 const auth = useAuthStore()
 const user = computed(() => auth.user)
+const isAdmin = computed(() => user.value?.role === 'admin')
 const appTitle = import.meta.env.VITE_APP_TITLE
 
 function logout() { auth.logout() }

@@ -1,141 +1,107 @@
 <template>
   <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-      <div>
-        <h2 class="display-6 fw-bold text-dark mb-1">Preguntas Frecuentes</h2>
-        <p class="text-muted mb-0">Resolvemos tus dudas sobre nuestros servicios</p>
+    <PageHeader 
+      title="Preguntas Frecuentes" 
+      subtitle="Resolvemos tus dudas sobre nuestros servicios"
+    >
+      <template #actions>
+        <button v-if="isAdmin" class="btn btn-primary shadow-sm" @click="openModal">
+          <i class="bi bi-plus-lg me-2"></i>Nueva Pregunta
+        </button>
+      </template>
+    </PageHeader>
+
+    <div class="row justify-content-center mb-5">
+      <div class="col-lg-8">
+        <SearchInput 
+          v-model="searchQuery" 
+          placeholder="Buscar por pregunta o contenido..." 
+        />
       </div>
-      <button v-if="isAdmin" class="btn btn-primary shadow-sm" @click="openModal">
-        <i class="bi bi-plus-lg me-2"></i>Nueva Pregunta
-      </button>
     </div>
 
-    <!-- Error Alert (Global) -->
     <div v-if="globalError" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
       <i class="bi bi-exclamation-octagon-fill me-2"></i>
       {{ globalError }}
       <button type="button" class="btn-close" @click="globalError = null"></button>
     </div>
 
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
+    <LoadingSpinner v-if="loading" />
 
-    <div v-else-if="faqs.length === 0" class="text-center py-5 bg-light rounded shadow-sm">
-      <i class="bi bi-question-circle display-4 text-muted mb-3 d-block"></i>
-      <p class="text-muted mb-0">No hay preguntas frecuentes registradas aún.</p>
-    </div>
+    <EmptyState 
+      v-else-if="filteredFaqs.length === 0" 
+      icon="bi-question-circle"
+      message="No se encontraron preguntas frecuentes." 
+    />
 
     <div v-else class="row justify-content-center">
       <div class="col-lg-10">
-        <div class="accordion shadow-sm border-0 rounded overflow-hidden" id="faqAccordion">
-          <div v-for="(faq, index) in faqs" :key="faq.id" class="accordion-item border-0 border-bottom">
-            <h2 class="accordion-header" :id="'heading' + index">
-              <button 
-                class="accordion-button collapsed fw-bold text-dark py-4" 
-                type="button" 
-                data-bs-toggle="collapse" 
-                :data-bs-target="'#collapse' + index" 
-                aria-expanded="false" 
-                :aria-controls="'collapse' + index"
-              >
-                <div class="d-flex align-items-center w-100 me-3">
-                  <span class="me-auto">{{ faq.question }}</span>
-                  
-                  <div v-if="isAdmin" class="btn-group ms-3" @click.stop>
-                    <button class="btn btn-sm btn-light text-primary" @click="editFaq(faq)" title="Editar">
-                      <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn btn-sm btn-light text-danger" @click="confirmDelete(faq)" title="Eliminar">
-                      <i class="bi bi-trash-fill"></i>
-                    </button>
-                  </div>
-                </div>
-              </button>
-            </h2>
-            <div 
-              :id="'collapse' + index" 
-              class="accordion-collapse collapse" 
-              :aria-labelledby="'heading' + index" 
-              data-bs-parent="#faqAccordion"
-            >
-              <div class="accordion-body text-muted lh-lg pb-4">
-                {{ faq.answer }}
-              </div>
-            </div>
-          </div>
-        </div>
+        <FaqAccordion 
+          :faqs="filteredFaqs" 
+          :is-admin="isAdmin" 
+          @edit="editFaq" 
+          @delete="confirmDelete" 
+        />
       </div>
     </div>
 
-    <!-- Create/Edit Modal -->
-    <div v-if="showModal" class="modal d-block" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-          <div class="modal-header bg-dark text-white" style="background-color: var(--primary-color) !important;">
-            <h5 class="modal-title fw-bold text-white">
-              <i class="bi" :class="isEditing ? 'bi-pencil-square' : 'bi-plus-circle-fill'"></i>
-              {{ isEditing ? 'Editar Pregunta' : 'Nueva Pregunta' }}
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @click="closeModal"></button>
-          </div>
-          <div class="modal-body p-4">
-            
-            <!-- Modal Error -->
-            <div v-if="modalError" class="alert alert-danger d-flex align-items-center mb-3" role="alert">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <div>{{ modalError }}</div>
-            </div>
+    <BaseModal 
+      :show="showModal" 
+      :title="isEditing ? 'Editar Pregunta' : 'Nueva Pregunta'"
+      @close="closeModal"
+    >
+      <!-- Modal Error -->
+      <div v-if="modalError" class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>{{ modalError }}</div>
+      </div>
 
-            <form @submit.prevent="saveFaq" novalidate>
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold text-uppercase">Pregunta</label>
-                <input 
-                  v-model="form.question" 
-                  class="form-control" 
-                  :class="{ 'is-invalid': errors.question }"
-                  required 
-                  placeholder="Ej. ¿Cómo puedo cancelar mi suscripción?"
-                  @input="clearError('question')"
-                >
-                <div class="invalid-feedback">
-                  {{ errors.question }}
-                </div>
-              </div>
-              
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold text-uppercase">Respuesta</label>
-                <textarea 
-                  v-model="form.answer" 
-                  class="form-control" 
-                  rows="4" 
-                  :class="{ 'is-invalid': errors.answer }"
-                  required 
-                  placeholder="Escribe la respuesta detallada aquí..."
-                  @input="clearError('answer')"
-                ></textarea>
-                <div class="invalid-feedback">
-                  {{ errors.answer }}
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold text-uppercase">Orden (Prioridad)</label>
-                <input v-model.number="form.order" type="number" class="form-control" placeholder="0">
-                <small class="text-muted">Menor número aparece primero.</small>
-              </div>
-
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <button type="button" class="btn btn-light" @click="closeModal">Cancelar</button>
-                <button type="submit" class="btn btn-primary px-4">
-                  {{ isEditing ? 'Guardar Cambios' : 'Crear Pregunta' }}
-                </button>
-              </div>
-            </form>
+      <form @submit.prevent="saveFaq" novalidate>
+        <div class="mb-3">
+          <label class="form-label text-muted small fw-bold text-uppercase">Pregunta</label>
+          <input 
+            v-model="form.question" 
+            class="form-control" 
+            :class="{ 'is-invalid': errors.question }"
+            required 
+            placeholder="Ej. ¿Cómo puedo cancelar mi suscripción?"
+            @input="clearError('question')"
+          >
+          <div class="invalid-feedback">
+            {{ errors.question }}
           </div>
         </div>
-      </div>
-    </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-muted small fw-bold text-uppercase">Respuesta</label>
+          <textarea 
+            v-model="form.answer" 
+            class="form-control" 
+            rows="4" 
+            :class="{ 'is-invalid': errors.answer }"
+            required 
+            placeholder="Escribe la respuesta detallada aquí..."
+            @input="clearError('answer')"
+          ></textarea>
+          <div class="invalid-feedback">
+            {{ errors.answer }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-muted small fw-bold text-uppercase">Orden (Prioridad)</label>
+          <input v-model.number="form.order" type="number" class="form-control" placeholder="0">
+          <small class="text-muted">Menor número aparece primero.</small>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-light" @click="closeModal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">
+            {{ isEditing ? 'Guardar Cambios' : 'Crear Pregunta' }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
@@ -143,10 +109,17 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
+import PageHeader from '../components/global/PageHeader.vue'
+import SearchInput from '../components/global/SearchInput.vue'
+import LoadingSpinner from '../components/global/LoadingSpinner.vue'
+import EmptyState from '../components/global/EmptyState.vue'
+import BaseModal from '../components/global/BaseModal.vue'
+import FaqAccordion from '../components/faq/FaqAccordion.vue'
 
 const auth = useAuthStore()
 const faqs = ref([])
 const loading = ref(true)
+const searchQuery = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
 const globalError = ref(null)
@@ -161,6 +134,15 @@ const form = ref({
 })
 
 const isAdmin = computed(() => auth.user?.role === 'admin')
+
+const filteredFaqs = computed(() => {
+  if (!searchQuery.value) return faqs.value
+  const query = searchQuery.value.toLowerCase()
+  return faqs.value.filter(faq => 
+    faq.question.toLowerCase().includes(query) || 
+    faq.answer.toLowerCase().includes(query)
+  )
+})
 
 onMounted(async () => {
   await fetchFaqs()
@@ -251,15 +233,3 @@ async function confirmDelete(faq) {
   }
 }
 </script>
-
-<style scoped>
-.accordion-button:not(.collapsed) {
-  color: var(--primary-color);
-  background-color: rgba(197, 160, 89, 0.1); /* Gold tint */
-  box-shadow: none;
-}
-.accordion-button:focus {
-  box-shadow: none;
-  border-color: rgba(0,0,0,0.1);
-}
-</style>
