@@ -45,6 +45,12 @@
         <div class="py-5">
           <i class="bi bi-lock-fill display-1 text-secondary mb-3"></i>
           <h2 class="h3 fw-bold text-secondary">Contenido Bloqueado</h2>
+          
+          <div class="alert alert-warning d-inline-block px-4 py-3 my-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Debes tener una suscripción activa para ver este contenido.
+          </div>
+
           <p class="text-muted mb-4">
             Este contenido es exclusivo para miembros del <strong>Plan {{ post.minPlan.name }}</strong> o superior.
           </p>

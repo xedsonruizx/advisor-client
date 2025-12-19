@@ -65,9 +65,12 @@
             </div>
 
             <h5 class="card-title fw-bold text-dark">
-              <router-link :to="'/posts/' + post.id" target="_blank" class="text-decoration-none text-dark stretched-link">
+              <router-link v-if="!post.isLocked" :to="'/posts/' + post.id" target="_blank" class="text-decoration-none text-dark stretched-link">
                 {{ post.title }}
               </router-link>
+              <span v-else class="text-dark">
+                {{ post.title }}
+              </span>
             </h5>
             
             <p class="card-text text-muted mb-3 position-relative z-index-10">{{ post.shortDescription }}</p>
@@ -77,6 +80,10 @@
             </div>
             
             <div v-else class="mt-auto text-center pt-3 border-top position-relative z-index-10">
+               <div class="alert alert-warning d-flex align-items-center justify-content-center p-2 mb-3" role="alert">
+                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                 <small>Debes tener una suscripción activa para ver este contenido.</small>
+               </div>
                <p class="small text-muted mb-2">
                  Este contenido requiere el <strong>Plan {{ post.minPlan.name }}</strong> o superior.
                </p>
