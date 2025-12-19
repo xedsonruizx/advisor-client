@@ -65,7 +65,8 @@ onMounted(async () => {
     const { data } = await axios.get('/memberships/plans')
     plans.value = data
   } catch (e) {
-    console.error("Error cargando planes", e)
+    // TODO: REVISION DE PLANES
+    console.error("TODO: Error cargando planes", e)
     // Datos dummy por si el backend falla o está vacío para visualizar el diseño
     if (plans.value.length === 0) {
       plans.value = [

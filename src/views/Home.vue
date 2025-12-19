@@ -1,3 +1,7 @@
+<script setup>
+const appTitle = import.meta.env.VITE_APP_TITLE
+</script>
+
 <template>
   <div>
     <!-- Hero Section -->

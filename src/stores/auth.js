@@ -42,9 +42,10 @@ export const useAuthStore = defineStore('auth', {
     async fetchMe() {
       try {
         const { data } = await axios.get('/auth/me')
+        // data will be null if not logged in (status 200), or user object
         this.user = data
       } catch (e) {
-        // Si falla la autenticación (ej. 401), limpiamos el usuario silenciosamente
+        // Fallback just in case
         this.user = null
       }
     }
