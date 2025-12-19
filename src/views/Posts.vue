@@ -25,11 +25,11 @@
           <!-- Admin Controls -->
           <div v-if="canCreate" class="position-absolute top-0 end-0 p-2 z-index-10">
             <div class="btn-group shadow-sm">
-              <button class="btn btn-light text-primary" @click="editPost(post)" title="Editar" style="border-radius: 50% 0 0 50%;">
-                <i class="bi bi-pencil-fill"></i>
+              <button class="btn btn-light" @click="editPost(post)" title="Editar" style="border-radius: 50% 0 0 50%;">
+                <i class="bi bi-pencil-fill text-primary"></i>
               </button>
-              <button class="btn btn-light text-danger" @click="confirmDelete(post)" title="Eliminar" style="border-radius: 0 50% 50% 0;">
-                <i class="bi bi-trash-fill"></i>
+              <button class="btn btn-light" @click="confirmDelete(post)" title="Eliminar" style="border-radius: 0 50% 50% 0;">
+                <i class="bi bi-trash-fill text-danger"></i>
               </button>
             </div>
           </div>
