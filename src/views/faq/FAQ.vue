@@ -48,6 +48,7 @@
     <BaseModal 
       :show="showModal" 
       :title="isEditing ? 'Editar Pregunta' : 'Nueva Pregunta'"
+      size="xl"
       @close="closeModal"
     >
       <!-- Modal Error -->
@@ -59,14 +60,16 @@
       <form @submit.prevent="saveFaq" novalidate>
         <div class="mb-3">
           <label class="form-label text-muted small fw-bold text-uppercase">Pregunta</label>
-          <input 
+          <textarea 
             v-model="form.question" 
             class="form-control" 
+            rows="2"
+            style="resize: vertical"
             :class="{ 'is-invalid': errors.question }"
             required 
             placeholder="Ej. ¿Cómo puedo cancelar mi suscripción?"
             @input="clearError('question')"
-          >
+          ></textarea>
           <div class="invalid-feedback">
             {{ errors.question }}
           </div>
@@ -74,7 +77,7 @@
         
         <div class="mb-3">
           <label class="form-label text-muted small fw-bold text-uppercase">Respuesta</label>
-          <div style="height: 300px; margin-bottom: 50px;">
+          <div class="mb-4 quill-wrapper">
             <QuillEditor 
               v-model:content="form.answer" 
               contentType="html" 
@@ -86,7 +89,7 @@
           <div class="invalid-feedback d-block">{{ errors.answer }}</div>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3 mt-4">
           <label class="form-label text-muted small fw-bold text-uppercase">Orden (Prioridad)</label>
           <input v-model.number="form.order" type="number" class="form-control" placeholder="0">
           <small class="text-muted">Menor número aparece primero.</small>
@@ -231,3 +234,15 @@ async function confirmDelete(faq) {
   }
 }
 </script>
+
+<style scoped>
+.quill-wrapper {
+  min-height: 300px;
+  resize: vertical;
+  overflow: auto;
+  position: relative;
+}
+.quill-wrapper :deep(.ql-container) {
+  min-height: 220px;
+}
+</style>
