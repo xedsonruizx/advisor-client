@@ -54,8 +54,7 @@
       
       <p class="card-text text-muted mb-3 position-relative z-index-10">{{ post.shortDescription }}</p>
       
-      <div v-if="!post.isLocked" class="card-text text-dark flex-grow-1 position-relative z-index-10" style="white-space: pre-line; font-size: 0.95rem;">
-        {{ post.content }}
+      <div v-if="!post.isLocked" class="card-text text-dark flex-grow-1 position-relative z-index-10 ql-editor" style="font-size: 0.95rem; overflow: hidden; max-height: 200px;" v-html="post.content">
       </div>
       
       <div v-else class="mt-auto text-center pt-3 border-top position-relative z-index-10">

@@ -5,8 +5,11 @@ import router from './router.js'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './assets/main.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const app = createApp(App)
+app.component('QuillEditor', QuillEditor)
 app.use(createPinia())
 app.use(router)
 app.mount('#app')
