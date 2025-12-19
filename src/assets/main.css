@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;600;700&display=swap');
+
+:root {
+  --primary-color: #0f172a; /* Slate 900 */
+  --secondary-color: #c5a059; /* Gold */
+  --secondary-hover: #b08d45;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --bg-light: #f8fafc;
+  --white: #ffffff;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  color: var(--text-dark);
+  background-color: var(--bg-light);
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+/* Navbar Customization */
+.navbar-custom {
+  background-color: var(--primary-color);
+  padding: 1rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-custom .navbar-brand {
+  color: var(--secondary-color) !important;
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
+}
+
+.navbar-custom .nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 400;
+  margin: 0 10px;
+  transition: color 0.3s ease;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.router-link-active {
+  color: var(--secondary-color) !important;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.8rem 2rem; /* Aumentado padding */
+  border-radius: 4px; /* Suavizado bordes */
+  text-transform: uppercase;
+  letter-spacing: 1.5px; /* Aumentado espaciado */
+  font-size: 0.85rem; /* Ajuste fino de tamaño */
+  transition: all 0.3s ease;
+  display: inline-flex; /* Centrado */
+  align-items: center;
+  justify-content: center;
+  min-width: 160px; /* Ancho mínimo para consistencia */
+}
+
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus {
+  background-color: var(--secondary-hover) !important;
+  border-color: var(--secondary-hover) !important;
+  box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+  transform: translateY(-1px); /* Efecto sutil de elevación */
+}
+
+.btn-primary:disabled {
+  background-color: #d1d5db;
+  border-color: #d1d5db;
+  transform: none;
+}
+
+.btn-outline-primary {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.8rem 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #fff;
+}
+
+/* Botones pequeños (override para navbar u otros) */
+.btn-sm {
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  min-width: auto;
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 8px; /* Bordes más suaves */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: var(--white);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  background-color: transparent;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding: 2rem 1.5rem 1rem;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* Footer */
+.footer {
+  background-color: var(--primary-color);
+  color: rgba(255,255,255,0.7);
+  padding: 4rem 0 2rem;
+  margin-top: 5rem;
+}
+
+.footer h5 {
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+.footer a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.footer a:hover {
+  color: var(--secondary-color);
+}
