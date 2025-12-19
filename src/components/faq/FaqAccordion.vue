@@ -30,8 +30,7 @@
         :aria-labelledby="'heading' + index" 
         data-bs-parent="#faqAccordion"
       >
-        <div class="accordion-body text-muted lh-lg pb-4">
-          {{ faq.answer }}
+        <div class="accordion-body text-muted lh-lg pb-4 ql-editor" v-html="faq.answer">
         </div>
       </div>
     </div>

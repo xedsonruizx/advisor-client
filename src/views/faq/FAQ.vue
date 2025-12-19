@@ -74,18 +74,16 @@
         
         <div class="mb-3">
           <label class="form-label text-muted small fw-bold text-uppercase">Respuesta</label>
-          <textarea 
-            v-model="form.answer" 
-            class="form-control" 
-            rows="4" 
-            :class="{ 'is-invalid': errors.answer }"
-            required 
-            placeholder="Escribe la respuesta detallada aquí..."
-            @input="clearError('answer')"
-          ></textarea>
-          <div class="invalid-feedback">
-            {{ errors.answer }}
+          <div style="height: 300px; margin-bottom: 50px;">
+            <QuillEditor 
+              v-model:content="form.answer" 
+              contentType="html" 
+              theme="snow" 
+              toolbar="full"
+              @update:content="() => clearError('answer')"
+            />
           </div>
+          <div class="invalid-feedback d-block">{{ errors.answer }}</div>
         </div>
 
         <div class="mb-3">
