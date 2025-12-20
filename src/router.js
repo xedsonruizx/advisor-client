@@ -10,6 +10,7 @@ import PostDetail from './views/post/PostDetail.vue'
 import Users from './views/admin/Users.vue'
 import Payments from './views/admin/Payments.vue'
 import FAQ from './views/faq/FAQ.vue'
+import Profile from './views/account/Profile.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -18,6 +19,7 @@ const routes = [
   { path: '/forgot-password', component: ForgotPassword },
   { path: '/memberships', component: Memberships },
   { path: '/dashboard', component: Dashboard },
+  { path: '/profile', component: Profile },
   { path: '/posts', component: Posts },
   { path: '/posts/:id', component: PostDetail },
   { path: '/faq', component: FAQ },
