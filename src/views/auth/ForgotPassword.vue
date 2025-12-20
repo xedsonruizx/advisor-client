@@ -53,6 +53,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 
 const email = ref('')
 const loading = ref(false)
@@ -61,13 +62,15 @@ const message = ref('')
 async function submit() {
   loading.value = true
   message.value = ''
-  
-  // Simulación de llamada al backend
-  setTimeout(() => {
-    loading.value = false
+  try {
+    await axios.post('/auth/forgot', { email: email.value })
     message.value = 'Si el correo existe en nuestro sistema, recibirá un enlace de recuperación en breve.'
     email.value = ''
-  }, 1500)
+  } catch (e) {
+    message.value = 'No se pudo enviar el correo de recuperación en este momento.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

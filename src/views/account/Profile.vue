@@ -171,10 +171,25 @@ async function submit() {
     changePassword.value = false
   } catch (e) {
     const err = e.response?.data?.error
-    if (err === 'email_in_use') globalError.value = 'Ese email ya está en uso'
-    else if (err === 'invalid_current_password') globalError.value = 'La contraseña actual es incorrecta'
-    else if (err === 'unauthorized') globalError.value = 'Inicia sesión para actualizar tu perfil'
-    else globalError.value = 'No se pudo actualizar el perfil'
+    if (err === 'email_in_use') {
+      errors.value.email = 'Ese email ya está en uso'
+    } else if (err === 'invalid_current_password') {
+      errors.value.currentPassword = 'La contraseña actual es incorrecta'
+    } else if (err === 'invalid_input') {
+      if (changePassword.value && !form.value.currentPassword) {
+        errors.value.currentPassword = 'Ingresa tu contraseña actual'
+      }
+      if (changePassword.value && (!form.value.password || form.value.password.length < 12)) {
+        errors.value.password = 'La nueva contraseña debe tener mínimo 12 caracteres'
+      }
+      globalError.value = 'Datos inválidos, revisa los campos marcados'
+    } else if (err === 'unauthorized') {
+      globalError.value = 'Inicia sesión para actualizar tu perfil'
+    } else if (e.response?.status === 404) {
+      globalError.value = 'Servidor no disponible o ruta no encontrada'
+    } else {
+      globalError.value = 'No se pudo actualizar el perfil'
+    }
   } finally {
     loading.value = false
   }
