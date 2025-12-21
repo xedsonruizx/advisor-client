@@ -4,6 +4,17 @@
     subtitle="Ingrese a su cuenta para gestionar sus asesorías"
   >
     <form @submit.prevent="submit">
+      <div v-if="verifySuccess" class="alert alert-success d-flex align-items-center small mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <div v-if="isRedirecting">Correo verificado con éxito. Redirigiendo al inicio...</div>
+        <div v-else>¡Correo verificado con éxito! Ahora puede ingresar.</div>
+      </div>
+
+      <div v-if="verifyError" class="alert alert-warning d-flex align-items-center small mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>{{ verifyError }}</div>
+      </div>
+
       <div class="mb-3">
         <label for="email" class="form-label text-muted small text-uppercase fw-bold">Email</label>
         <div class="input-group">
@@ -69,8 +80,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import AuthCard from '../../components/auth/AuthCard.vue'
 
@@ -83,6 +94,40 @@ const showPassword = ref(false)
 
 const loading = computed(() => auth.loading)
 const error = computed(() => auth.error)
+
+const route = useRoute()
+const verifySuccess = ref(false)
+const verifyError = ref('')
+const isRedirecting = ref(false)
+
+onMounted(async () => {
+  if (route.query.verified === 'true') {
+    verifySuccess.value = true
+    // Force refresh user data to ensure emailVerified is true in store
+    await auth.fetchMe()
+  } else if (route.query.error) {
+    if (route.query.error === 'invalid_or_expired_token') {
+      verifyError.value = 'El enlace de verificación no es válido o ya ha sido utilizado.'
+    } else {
+      verifyError.value = 'Hubo un problema al verificar su correo.'
+    }
+  }
+
+  // If already logged in (and verified), redirect to home
+  if (auth.user) {
+    if (auth.user.emailVerified) {
+      if (verifySuccess.value) {
+        // If we just verified, wait a bit so user sees the success message
+        isRedirecting.value = true
+        setTimeout(() => {
+          router.push('/')
+        }, 2000)
+      } else {
+        router.push('/')
+      }
+    }
+  }
+})
 
 async function submit() {
   await auth.login({ email: email.value, password: password.value, rememberMe: rememberMe.value })
