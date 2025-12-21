@@ -87,7 +87,7 @@ const error = computed(() => auth.error)
 async function submit() {
   await auth.login({ email: email.value, password: password.value, rememberMe: rememberMe.value })
   if (!error.value) {
-    router.push('/dashboard')
+    router.push('/')
   }
 }
 </script>

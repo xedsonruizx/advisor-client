@@ -51,7 +51,7 @@
               v-model="password" 
               class="form-control bg-light border-start-0 ps-0" 
               type="password" 
-              placeholder="Min. 12 caracteres" 
+              placeholder="Min. 8 caracteres" 
               required 
             />
           </div>
@@ -74,16 +74,22 @@
         </div>
       </div>
 
-      <!-- Mock Recaptcha -->
+      <!-- Recaptcha Enterprise -->
       <div class="mb-4">
+        <button 
+          ref="recaptchaBtn"
+          class="g-recaptcha btn btn-outline-secondary w-100 d-none" 
+          :data-sitekey="siteKey" 
+          data-callback="onRecaptchaSubmit" 
+          data-action="submit"
+        >
+          Verificar
+        </button>
         <div class="d-flex align-items-center p-3 border rounded bg-light">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="recaptcha" v-model="recaptchaVerified" required>
-            <label class="form-check-label" for="recaptcha">
-              No soy un robot
-            </label>
+          <div class="small text-muted flex-grow-1">
+            Protegido por reCAPTCHA Enterprise
           </div>
-          <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" class="ms-auto" style="height: 32px; opacity: 0.5;">
+          <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style="height: 24px; opacity: 0.7;">
         </div>
       </div>
 
@@ -112,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import AuthCard from '../../components/auth/AuthCard.vue'
@@ -120,11 +126,12 @@ import AuthCard from '../../components/auth/AuthCard.vue'
 const router = useRouter()
 const auth = useAuthStore()
 const appTitle = import.meta.env.VITE_APP_TITLE
+const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 const name = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-const recaptchaVerified = ref(false)
+const recaptchaBtn = ref(null)
 const localError = ref('')
 const emailError = ref('')
 
@@ -152,8 +159,17 @@ const isValid = computed(() => {
          email.value && 
          password.value && 
          confirmPassword.value && 
-         recaptchaVerified.value && 
          !emailError.value
+})
+
+onMounted(() => {
+  window.onRecaptchaSubmit = async (token) => {
+    await performRegister(token)
+  }
+})
+
+onUnmounted(() => {
+  window.onRecaptchaSubmit = null
 })
 
 async function submit() {
@@ -169,17 +185,33 @@ async function submit() {
     return
   }
   
-  if (password.value.length < 12) {
-    localError.value = 'La contraseña debe tener al menos 12 caracteres.'
+  if (password.value.length < 8) {
+    localError.value = 'La contraseña debe tener al menos 8 caracteres.'
     return
   }
 
-  if (!recaptchaVerified.value) {
-    localError.value = 'Por favor confirme que no es un robot.'
-    return
+  // Trigger reCAPTCHA
+  if (window.grecaptcha && window.grecaptcha.enterprise) {
+    window.grecaptcha.enterprise.execute(siteKey, { action: 'submit' }).then(token => {
+      performRegister(token)
+    })
+  } else {
+    // Fallback if script not loaded or blocked
+    console.warn('Recaptcha not loaded, proceeding without token (may fail on server)')
+    await performRegister(null)
   }
+}
 
-  await auth.register({ name: name.value, email: email.value, password: password.value })
+async function performRegister(token) {
+  await auth.register({ 
+    name: name.value, 
+    email: email.value, 
+    password: password.value,
+    recaptchaToken: token 
+  })
+  if (!error.value) {
+    router.push('/')
+  }
 }
 </script>
 

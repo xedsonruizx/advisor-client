@@ -70,7 +70,7 @@
                     type="password"
                     class="form-control"
                     :class="{ 'is-invalid': errors.password }"
-                    placeholder="Mínimo 12 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     @input="clearError('password')"
                   />
                   <div class="invalid-feedback">{{ errors.password }}</div>
@@ -136,13 +136,13 @@ function validate() {
     errors.value.email = 'Email inválido'
     ok = false
   }
-  if (changePassword.value) {
-    if (!form.value.currentPassword) {
-      errors.value.currentPassword = 'Ingresa tu contraseña actual'
-      ok = false
-    }
-    if (!form.value.password || form.value.password.length < 12) {
-      errors.value.password = 'La nueva contraseña debe tener mínimo 12 caracteres'
+    if (changePassword.value) {
+      if (!form.value.currentPassword) {
+        errors.value.currentPassword = 'Ingresa tu contraseña actual'
+        ok = false
+      }
+    if (!form.value.password || form.value.password.length < 8) {
+      errors.value.password = 'La nueva contraseña debe tener mínimo 8 caracteres'
       ok = false
     }
   }
@@ -179,8 +179,8 @@ async function submit() {
       if (changePassword.value && !form.value.currentPassword) {
         errors.value.currentPassword = 'Ingresa tu contraseña actual'
       }
-      if (changePassword.value && (!form.value.password || form.value.password.length < 12)) {
-        errors.value.password = 'La nueva contraseña debe tener mínimo 12 caracteres'
+      if (changePassword.value && (!form.value.password || form.value.password.length < 8)) {
+        errors.value.password = 'La nueva contraseña debe tener mínimo 8 caracteres'
       }
       globalError.value = 'Datos inválidos, revisa los campos marcados'
     } else if (err === 'unauthorized') {

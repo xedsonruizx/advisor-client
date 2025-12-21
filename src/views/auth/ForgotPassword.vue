@@ -29,6 +29,25 @@
                 </div>
               </div>
 
+              <!-- Recaptcha Enterprise -->
+              <div class="mb-4">
+                <button 
+                  ref="recaptchaBtn"
+                  class="g-recaptcha btn btn-outline-secondary w-100 d-none" 
+                  :data-sitekey="siteKey" 
+                  data-callback="onRecaptchaSubmitForgot" 
+                  data-action="submit"
+                >
+                  Verificar
+                </button>
+                <div class="d-flex align-items-center p-3 border rounded bg-light">
+                  <div class="small text-muted flex-grow-1">
+                    Protegido por reCAPTCHA Enterprise
+                  </div>
+                  <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" style="height: 24px; opacity: 0.7;">
+                </div>
+              </div>
+
               <button class="btn btn-primary w-100 mb-4 py-2" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Enviar Instrucciones
@@ -52,18 +71,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 const email = ref('')
 const loading = ref(false)
 const message = ref('')
+const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+
+onMounted(() => {
+  window.onRecaptchaSubmitForgot = async (token) => {
+    await performSubmit(token)
+  }
+})
+
+onUnmounted(() => {
+  window.onRecaptchaSubmitForgot = null
+})
 
 async function submit() {
   loading.value = true
   message.value = ''
+  
+  if (window.grecaptcha && window.grecaptcha.enterprise) {
+    window.grecaptcha.enterprise.execute(siteKey, { action: 'submit' }).then(token => {
+      performSubmit(token)
+    })
+  } else {
+    console.warn('Recaptcha not loaded')
+    await performSubmit(null)
+  }
+}
+
+async function performSubmit(token) {
   try {
-    await axios.post('/auth/forgot', { email: email.value })
+    await axios.post('/auth/forgot', { email: email.value, recaptchaToken: token })
     message.value = 'Si el correo existe en nuestro sistema, recibirá un enlace de recuperación en breve.'
     email.value = ''
   } catch (e) {

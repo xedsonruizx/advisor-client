@@ -84,11 +84,15 @@
 <script setup>
 import { useAuthStore } from './stores/auth'
 import { computed, onMounted } from 'vue'
+import router from './router.js'
 const auth = useAuthStore()
 const user = computed(() => auth.user)
 const isAdmin = computed(() => user.value?.role === 'admin')
 const appTitle = import.meta.env.VITE_APP_TITLE
-
-function logout() { auth.logout() }
+ 
+async function logout() { 
+  await auth.logout()
+  router.push('/')
+}
 onMounted(() => auth.fetchMe())
 </script>
