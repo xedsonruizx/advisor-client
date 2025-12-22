@@ -89,7 +89,7 @@
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label small fw-bold text-uppercase text-muted">Tipo de Respuesta</label>
-            <select v-model="form.type" class="form-select" required>
+            <select :disabled="isEditing" v-model="form.type" class="form-select" required>
               <option value="text">Texto Libre</option>
               <option value="number">Numérico</option>
               <option value="select">Selección Única (Lista)</option>
@@ -156,27 +156,47 @@
           </div>
         </div>
 
-        <!-- Options Section (only for select/radio/checkbox) -->
-        <div v-if="['select', 'radio', 'checkbox'].includes(form.type)" class="mb-4">
+        <!-- Options Section (for select/radio/checkbox OR numeric rules) -->
+        <div v-if="['select', 'radio', 'checkbox', 'number'].includes(form.type)" class="mb-4">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label small fw-bold text-uppercase text-muted mb-0">Opciones de Respuesta</label>
+            <label class="form-label small fw-bold text-uppercase text-muted mb-0">
+              {{ form.type === 'number' ? 'Reglas de Puntuación / Multas' : 'Opciones de Respuesta' }}
+            </label>
             <button type="button" class="btn btn-sm btn-outline-primary" @click="addOption">
-              <i class="bi bi-plus-circle me-1"></i>Agregar Opción
+              <i class="bi bi-plus-circle me-1"></i>Agregar {{ form.type === 'number' ? 'Regla' : 'Opción' }}
             </button>
           </div>
 
           <div v-for="(opt, idx) in form.options" :key="idx" class="card mb-2 border-light bg-light">
             <div class="card-body p-2">
               <div class="row g-2 align-items-center">
-                <div class="col-md-5">
-                  <input v-model="opt.text" class="form-control form-control-sm" placeholder="Texto de opción" required>
+                <!-- Text/Label -->
+                <div class="col-md-3">
+                  <input v-model="opt.text" class="form-control form-control-sm" :placeholder="form.type === 'number' ? 'Nombre de regla' : 'Texto de opción'" required>
                 </div>
-                <div class="col-md-2">
+                
+                <!-- Numeric Rules Condition Fields -->
+                <div class="col-md-4" v-if="form.type === 'number'">
+                   <div class="input-group input-group-sm">
+                      <select v-model="opt.conditionOperator" class="form-select" required>
+                        <option :value="null">Operador...</option>
+                        <!-- Fallback to 'number' operators if computed OPERATORS.number is not available in scope directly -->
+                        <option v-for="op in OPERATORS.number" :key="op.value" :value="op.value">{{ op.label }}</option>
+                      </select>
+                      <input v-if="requiresValue(opt.conditionOperator)" v-model="opt.value" type="number" class="form-control" placeholder="Valor" required>
+                   </div>
+                </div>
+
+                <!-- Points -->
+                <div class="col-md-2" v-if="form.type !== 'number'">
                   <input v-model.number="opt.score" type="number" class="form-control form-control-sm" placeholder="Puntos">
                 </div>
-                <div class="col-md-4">
-                  <textarea v-model="opt.penalty" class="form-control form-control-sm" placeholder="Multa (HTML permitido)" rows="1"></textarea>
+                
+                <!-- Penalty -->
+                <div :class="form.type === 'number' ? 'col-md-4' : 'col-md-2'">
+                  <textarea v-model="opt.penalty" class="form-control form-control-sm" placeholder="Multa (HTML)" rows="1"></textarea>
                 </div>
+                
                 <div class="col-md-1 text-end">
                   <button type="button" class="btn btn-sm btn-link text-danger p-0" @click="removeOption(idx)">
                     <i class="bi bi-x-lg"></i>
@@ -393,7 +413,9 @@ function addOption() {
     text: '',
     score: 0,
     penalty: '',
-    order: form.value.options.length
+    order: form.value.options.length,
+    conditionOperator: null,
+    value: null
   })
 }
 
@@ -409,7 +431,7 @@ async function saveQuestion() {
   try {
     const payload = { ...form.value }
     // Clean up options if type doesn't support them
-    if (!['select', 'radio', 'checkbox'].includes(payload.type)) {
+    if (!['select', 'radio', 'checkbox', 'number'].includes(payload.type)) {
       delete payload.options
     }
 
@@ -428,7 +450,9 @@ async function saveQuestion() {
     if (payload.options && Array.isArray(payload.options)) {
       payload.options.forEach(opt => {
         if (!opt.value) opt.value = null
+        if (opt.value !== null && opt.value !== undefined) opt.value = String(opt.value) // Ensure it's a string
         if (!opt.penalty) opt.penalty = null
+        if (!opt.conditionOperator) opt.conditionOperator = null
       })
     }
 
