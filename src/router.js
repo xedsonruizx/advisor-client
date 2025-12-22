@@ -35,7 +35,8 @@ const routes = [
   { path: '/faq', component: FAQ },
   { path: '/admin/users', component: Users },
   { path: '/admin/payments', component: Payments },
-  { path: '/admin/evaluations', component: Evaluations }
+  { path: '/admin/evaluations', component: Evaluations },
+  { path: '/admin/results/:userId', component: Results }
 ]
 
 const router = createRouter({

@@ -12,7 +12,14 @@
       </template>
     </PageHeader>
 
-    <div class="row justify-content-end mb-4">
+
+    <div class="row justify-content-end mb-4 align-items-center">
+      <div class="col-auto">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="evalFilter" v-model="filterWithEvaluation">
+          <label class="form-check-label" for="evalFilter">Solo con Evaluación</label>
+        </div>
+      </div>
       <div class="col-12 col-md-6 col-lg-4">
         <SearchInput 
           v-model="search" 
@@ -70,6 +77,12 @@
               </td>
               <td class="pe-4 text-end">
                 <div class="btn-group shadow-sm rounded">
+                  <router-link v-if="user.evaluation" :to="`/admin/results/${user.id}`" class="btn btn-sm btn-light" title="Ver Evaluación">
+                    <i class="bi bi-file-earmark-bar-graph-fill text-info"></i>
+                  </router-link>
+                  <button v-else class="btn btn-sm btn-light disabled" title="Sin evaluación">
+                    <i class="bi bi-file-earmark-x text-muted"></i>
+                  </button>
                   <button class="btn btn-sm btn-light" @click="editUser(user)" title="Editar">
                     <i class="bi bi-pencil-fill text-primary"></i>
                   </button>
@@ -165,6 +178,7 @@ const plans = ref([])
 const roles = ref([])
 const loading = ref(true)
 const search = ref('')
+const filterWithEvaluation = ref(false)
 const showModal = ref(false)
 const isEditing = ref(false)
 
@@ -230,9 +244,17 @@ async function fetchRoles() {
 }
 
 const filteredUsers = computed(() => {
-  if (!search.value) return users.value
+  let result = users.value
+
+  // Filter by evaluation presence if toggle is on
+  if (filterWithEvaluation.value) {
+    result = result.filter(u => u.evaluation)
+  }
+
+  if (!search.value) return result
+  
   const s = search.value.toLowerCase()
-  return users.value.filter(u => 
+  return result.filter(u => 
     u.name.toLowerCase().includes(s) || 
     u.email.toLowerCase().includes(s)
   )

@@ -13,6 +13,7 @@
     "@vueup/vue-quill": "^1.0.0-alpha.40",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
+    "html2pdf.js": "^0.12.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.27",
     "vue-router": "^4.3.0"
