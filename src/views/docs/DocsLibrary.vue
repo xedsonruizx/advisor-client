@@ -273,7 +273,7 @@ async function fetchTree() {
 
 async function fetchPlans() {
   try {
-    const { data } = await axios.get('/memberships')
+    const { data } = await axios.get('/memberships/plans')
     plans.value = data
   } catch (e) {
     console.error(e)
