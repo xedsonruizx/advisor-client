@@ -130,6 +130,17 @@
         </form>
       </div>
     </div>
+
+    <DeleteModal
+      :show="showResetModal"
+      title="¿Reiniciar Evaluación?"
+      message="Se perderá todo el progreso actual y tendrá que comenzar desde cero. ¿Desea continuar?"
+      confirmText="Sí, Reiniciar"
+      :loading="resetLoading"
+      @close="showResetModal = false"
+      @confirm="confirmReset"
+    />
+
   </div>
 </template>
 
@@ -140,6 +151,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import PageHeader from '../../components/global/PageHeader.vue'
 import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
+import DeleteModal from '../../components/global/DeleteModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()

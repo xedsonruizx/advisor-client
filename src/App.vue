@@ -12,6 +12,7 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
             <li class="nav-item"><router-link class="nav-link" to="/">Inicio</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/memberships">Membresías</router-link></li>
+            <li class="nav-item"><router-link class="nav-link" to="/docs">Biblioteca</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/posts">Avisos</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/faq">Preguntas</router-link></li>
             
@@ -42,6 +43,8 @@
     <main class="flex-grow-1">
       <router-view />
     </main>
+
+    <WhatsAppButton />
 
     <footer class="footer">
       <div class="container">
@@ -87,6 +90,8 @@
 import { useAuthStore } from './stores/auth'
 import { computed, onMounted } from 'vue'
 import router from './router.js'
+import WhatsAppButton from './components/global/WhatsAppButton.vue'
+
 const auth = useAuthStore()
 const user = computed(() => auth.user)
 const isAdmin = computed(() => user.value?.role === 'admin')

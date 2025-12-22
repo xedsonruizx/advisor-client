@@ -103,6 +103,16 @@
         </div>
       </form>
     </BaseModal>
+
+    <DeleteModal
+      :show="showDeleteModal"
+      title="Eliminar Pregunta"
+      message="¿Estás seguro de que deseas eliminar esta pregunta frecuente? Esta acción no se puede deshacer."
+      :loading="deleteLoading"
+      @close="showDeleteModal = false"
+      @confirm="executeDelete"
+    />
+
   </div>
 </template>
 
@@ -116,6 +126,7 @@ import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
 import EmptyState from '../../components/global/EmptyState.vue'
 import BaseModal from '../../components/global/BaseModal.vue'
 import FaqAccordion from '../../components/faq/FaqAccordion.vue'
+import DeleteModal from '../../components/global/DeleteModal.vue'
 
 const auth = useAuthStore()
 const faqs = ref([])
@@ -125,6 +136,9 @@ const showModal = ref(false)
 const isEditing = ref(false)
 const globalError = ref(null)
 const modalError = ref(null)
+const showDeleteModal = ref(false)
+const faqToDelete = ref(null)
+const deleteLoading = ref(false)
 const errors = reactive({})
 
 const form = ref({
@@ -223,14 +237,25 @@ async function saveFaq() {
   }
 }
 
-async function confirmDelete(faq) {
-  if (confirm('¿Eliminar esta pregunta frecuente?')) {
-    try {
-      await axios.delete(`/faqs/${faq.id}`)
-      await fetchFaqs()
-    } catch (e) {
-      globalError.value = 'No se pudo eliminar la pregunta. Inténtalo más tarde.'
-    }
+function confirmDelete(faq) {
+  faqToDelete.value = faq
+  showDeleteModal.value = true
+}
+
+async function executeDelete() {
+  if (!faqToDelete.value) return
+  
+  deleteLoading.value = true
+  try {
+    await axios.delete(`/faqs/${faqToDelete.value.id}`)
+    await fetchFaqs()
+    showDeleteModal.value = false
+  } catch (e) {
+    globalError.value = 'No se pudo eliminar la pregunta. Inténtalo más tarde.'
+    showDeleteModal.value = false
+  } finally {
+    deleteLoading.value = false
+    faqToDelete.value = null
   }
 }
 </script>

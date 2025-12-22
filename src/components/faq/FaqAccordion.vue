@@ -1,23 +1,21 @@
 <template>
   <div class="accordion shadow-sm border-0 rounded overflow-hidden" id="faqAccordion">
     <div v-for="(faq, index) in faqs" :key="faq.id" class="accordion-item border-0 border-bottom">
-      <h2 class="accordion-header" :id="'heading' + index">
+      <h2 class="accordion-header">
         <button 
-          class="accordion-button collapsed fw-bold text-dark py-4" 
+          class="accordion-button fw-bold text-dark py-4" 
+          :class="{ collapsed: openId !== faq.id }"
           type="button" 
-          data-bs-toggle="collapse" 
-          :data-bs-target="'#collapse' + index" 
-          aria-expanded="false" 
-          :aria-controls="'collapse' + index"
+          @click="toggle(faq.id)"
         >
           <div class="d-flex align-items-center w-100 me-3">
             <span class="me-auto">{{ faq.question }}</span>
             
-            <div v-if="isAdmin" class="btn-group ms-3" @click.stop>
-              <button class="btn btn-sm btn-light text-primary" @click="$emit('edit', faq)" title="Editar">
+            <div v-if="isAdmin" class="btn-group ms-3">
+              <button class="btn btn-sm btn-light text-primary" @click.stop="$emit('edit', faq)" title="Editar">
                 <i class="bi bi-pencil-fill"></i>
               </button>
-              <button class="btn btn-sm btn-light text-danger" @click="$emit('delete', faq)" title="Eliminar">
+              <button class="btn btn-sm btn-light text-danger" @click.stop="$emit('delete', faq)" title="Eliminar">
                 <i class="bi bi-trash-fill"></i>
               </button>
             </div>
@@ -25,10 +23,8 @@
         </button>
       </h2>
       <div 
-        :id="'collapse' + index" 
         class="accordion-collapse collapse" 
-        :aria-labelledby="'heading' + index" 
-        data-bs-parent="#faqAccordion"
+        :class="{ show: openId === faq.id }"
       >
         <div class="accordion-body text-muted lh-lg pb-4 ql-editor" v-html="faq.answer">
         </div>
@@ -38,6 +34,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 defineProps({
   faqs: {
     type: Array,
@@ -50,6 +48,16 @@ defineProps({
 })
 
 defineEmits(['edit', 'delete'])
+
+const openId = ref(null)
+
+function toggle(id) {
+  if (openId.value === id) {
+    openId.value = null
+  } else {
+    openId.value = id
+  }
+}
 </script>
 
 <style scoped>

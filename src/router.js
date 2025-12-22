@@ -15,6 +15,7 @@ import Payments from './views/admin/Payments.vue'
 import Evaluations from './views/admin/Evaluations.vue'
 import Evaluation from './views/evaluation/Evaluation.vue'
 import Results from './views/evaluation/Results.vue'
+import DocsLibrary from './views/docs/DocsLibrary.vue'
 import FAQ from './views/faq/FAQ.vue'
 import Profile from './views/account/Profile.vue'
 
@@ -27,6 +28,7 @@ const routes = [
   { path: '/verify-email', component: VerifyEmailPrompt },
   { path: '/evaluation', component: Evaluation },
   { path: '/evaluation/results', component: Results },
+  { path: '/docs', component: DocsLibrary },
   { path: '/memberships', component: Memberships },
   { path: '/dashboard', component: Dashboard },
   { path: '/profile', component: Profile },

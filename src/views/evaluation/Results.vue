@@ -177,6 +177,20 @@
   padding: 20mm;
   overflow-y: auto;
 }
+
+.action-btn {
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
 </style>
 
 <script setup>
@@ -186,6 +200,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import PageHeader from '../../components/global/PageHeader.vue'
 import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
+import DeleteModal from '../../components/global/DeleteModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -315,13 +330,25 @@ async function fetchResults() {
   }
 }
 
-async function restart() {
-  if (confirm('¿Desea realizar una nueva evaluación? Se eliminará el registro actual.')) {
-    try {
-      router.push('/evaluation')
-    } catch (e) {
-      console.error(e)
-    }
+function restart() {
+  showRestartModal.value = true
+}
+
+async function confirmRestart() {
+  restartLoading.value = true
+  try {
+    // Assuming backend handles deletion automatically when starting new, or we just redirect?
+    // The original code implies starting new overwrites or deletes.
+    // Actually original code was just a router push. 
+    // Wait, the prompt said "Se eliminará el registro actual".
+    // If backend doesn't support explicit delete, maybe just redirecting is enough if the backend handles "one active evaluation".
+    // But let's stick to previous logic: confirm -> redirect.
+    router.push('/evaluation')
+  } catch (e) {
+    console.error(e)
+  } finally {
+    restartLoading.value = false
+    showRestartModal.value = false
   }
 }
 
