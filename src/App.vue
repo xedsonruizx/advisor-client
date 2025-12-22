@@ -27,6 +27,8 @@
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
                 <li><router-link class="dropdown-item" to="/dashboard">Mi Panel</router-link></li>
+                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/users">Usuarios</router-link></li>
+                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/evaluations">Evaluaciones</router-link></li>
                 <li><router-link class="dropdown-item" to="/profile">Perfil</router-link></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><button class="dropdown-item text-danger" @click="logout">Cerrar Sesión</button></li>

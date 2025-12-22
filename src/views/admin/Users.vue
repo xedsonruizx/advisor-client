@@ -73,7 +73,7 @@
                   <button class="btn btn-sm btn-light" @click="editUser(user)" title="Editar">
                     <i class="bi bi-pencil-fill text-primary"></i>
                   </button>
-                  <button class="btn btn-sm btn-light" @click="confirmDelete(user)" title="Eliminar">
+                  <button class="btn btn-sm btn-light" @click="openDeleteModal(user)" title="Eliminar">
                     <i class="bi bi-trash-fill text-danger"></i>
                   </button>
                 </div>
@@ -138,6 +138,16 @@
         </div>
       </form>
     </BaseModal>
+
+    <!-- Delete Modal -->
+    <DeleteModal
+      :show="showDeleteModal"
+      :title="'Eliminar Usuario'"
+      :message="deleteMessage"
+      :loading="deleting"
+      @close="showDeleteModal = false"
+      @confirm="deleteUser"
+    />
   </div>
 </template>
 
@@ -148,6 +158,7 @@ import PageHeader from '../../components/global/PageHeader.vue'
 import SearchInput from '../../components/global/SearchInput.vue'
 import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
 import BaseModal from '../../components/global/BaseModal.vue'
+import DeleteModal from '../../components/global/DeleteModal.vue'
 
 const users = ref([])
 const plans = ref([])
@@ -156,6 +167,16 @@ const loading = ref(true)
 const search = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
+
+// Delete Modal State
+const showDeleteModal = ref(false)
+const deleting = ref(false)
+const userToDelete = ref(null)
+
+const deleteMessage = computed(() => {
+  if (!userToDelete.value) return ''
+  return `¿Estás seguro de que deseas eliminar al usuario "${userToDelete.value.name}"? Esta acción no se puede deshacer.`
+})
 
 const form = ref({
   id: null,
@@ -294,14 +315,24 @@ async function saveUser() {
   }
 }
 
-async function confirmDelete(user) {
-  if (confirm(`¿Eliminar usuario ${user.name}? Esta acción no se puede deshacer.`)) {
-    try {
-      await axios.delete(`/users/${user.id}`)
-      await fetchUsers()
-    } catch (e) {
-      alert('Error: ' + e.message)
-    }
+function openDeleteModal(user) {
+  userToDelete.value = user
+  showDeleteModal.value = true
+}
+
+async function deleteUser() {
+  if (!userToDelete.value) return
+  
+  deleting.value = true
+  try {
+    await axios.delete(`/users/${userToDelete.value.id}`)
+    await fetchUsers()
+    showDeleteModal.value = false
+    userToDelete.value = null
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    deleting.value = false
   }
 }
 </script>

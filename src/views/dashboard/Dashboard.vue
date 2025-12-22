@@ -44,6 +44,9 @@
                 <router-link to="/admin/payments" class="btn btn-outline-success">
                   <i class="bi bi-cash-stack me-2"></i>Ver Pagos
                 </router-link>
+                <router-link to="/admin/evaluations" class="btn btn-outline-info">
+                  <i class="bi bi-clipboard-check me-2"></i>Gestión de Evaluaciones
+                </router-link>
                 <router-link to="/posts" class="btn btn-outline-dark">
                   <i class="bi bi-megaphone me-2"></i>Gestionar Avisos
                 </router-link>
@@ -76,7 +79,7 @@
     <div v-else>
       <h2 class="mb-4">Mi Panel</h2>
       <div class="alert alert-warning" v-if="!user">Ingresa para ver tu estado.</div>
-      <div v-else class="card shadow-sm">
+      <div v-else class="card shadow-sm mb-4">
         <div class="card-body">
           <div class="row align-items-center">
             <div class="col-md-8">
@@ -96,6 +99,31 @@
                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
                  <i class="bi bi-person display-4 text-secondary"></i>
                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Evaluation Card -->
+      <div v-if="user" class="card shadow-sm border-primary border-start border-4">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h3 class="h4 text-primary fw-bold mb-2">Evaluación Empresarial</h3>
+              <p class="text-muted mb-3">
+                Realice un diagnóstico completo del estado de su empresa. Responda nuestro cuestionario especializado y obtenga recomendaciones personalizadas.
+              </p>
+              <div class="d-flex gap-2">
+                <router-link to="/evaluation" class="btn btn-primary">
+                  <i class="bi bi-play-circle me-2"></i>Iniciar Evaluación
+                </router-link>
+                <router-link to="/evaluation/results" class="btn btn-outline-secondary">
+                  <i class="bi bi-bar-chart me-2"></i>Ver Resultados
+                </router-link>
+              </div>
+            </div>
+            <div class="col-md-4 text-center d-none d-md-block">
+              <i class="bi bi-clipboard-data text-primary" style="font-size: 5rem; opacity: 0.2;"></i>
             </div>
           </div>
         </div>

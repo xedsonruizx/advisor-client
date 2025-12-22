@@ -12,6 +12,9 @@ import Posts from './views/post/Posts.vue'
 import PostDetail from './views/post/PostDetail.vue'
 import Users from './views/admin/Users.vue'
 import Payments from './views/admin/Payments.vue'
+import Evaluations from './views/admin/Evaluations.vue'
+import Evaluation from './views/evaluation/Evaluation.vue'
+import Results from './views/evaluation/Results.vue'
 import FAQ from './views/faq/FAQ.vue'
 import Profile from './views/account/Profile.vue'
 
@@ -22,6 +25,8 @@ const routes = [
   { path: '/forgot-password', component: ForgotPassword },
   { path: '/reset-password', component: ResetPassword },
   { path: '/verify-email', component: VerifyEmailPrompt },
+  { path: '/evaluation', component: Evaluation },
+  { path: '/evaluation/results', component: Results },
   { path: '/memberships', component: Memberships },
   { path: '/dashboard', component: Dashboard },
   { path: '/profile', component: Profile },
@@ -29,7 +34,8 @@ const routes = [
   { path: '/posts/:id', component: PostDetail },
   { path: '/faq', component: FAQ },
   { path: '/admin/users', component: Users },
-  { path: '/admin/payments', component: Payments }
+  { path: '/admin/payments', component: Payments },
+  { path: '/admin/evaluations', component: Evaluations }
 ]
 
 const router = createRouter({

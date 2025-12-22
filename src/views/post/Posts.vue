@@ -23,7 +23,7 @@
           :can-create="canCreate" 
           :is-authenticated="auth.isAuthenticated"
           @edit="editPost" 
-          @delete="confirmDelete" 
+          @delete="openDeleteModal" 
         />
       </div>
     </div>
@@ -117,6 +117,16 @@
         </div>
       </form>
     </BaseModal>
+
+    <!-- Delete Modal -->
+    <DeleteModal
+      :show="showDeleteModal"
+      :title="'Eliminar Aviso'"
+      :message="deleteMessage"
+      :loading="deleting"
+      @close="showDeleteModal = false"
+      @confirm="deletePost"
+    />
   </div>
 </template>
 
@@ -129,6 +139,9 @@ import LoadingSpinner from '../../components/global/LoadingSpinner.vue'
 import EmptyState from '../../components/global/EmptyState.vue'
 import BaseModal from '../../components/global/BaseModal.vue'
 import PostCard from '../../components/posts/PostCard.vue'
+import DeleteModal from '../../components/global/DeleteModal.vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 const auth = useAuthStore()
 const posts = ref([])
@@ -145,6 +158,16 @@ const postForm = ref({
   mediaUrl: '',
   mediaType: '',
   minPlanId: ''
+})
+
+// Delete Modal State
+const showDeleteModal = ref(false)
+const deleting = ref(false)
+const postToDelete = ref(null)
+
+const deleteMessage = computed(() => {
+  if (!postToDelete.value) return ''
+  return `¿Estás seguro de que quieres eliminar la publicación "${postToDelete.value.title}"?`
 })
 
 const canCreate = computed(() => {
@@ -225,14 +248,24 @@ function editPost(post) {
   }
 }
 
-async function confirmDelete(post) {
-  if (confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
-    try {
-      await axios.delete(`/posts/${post.id}`)
-      await fetchPosts()
-    } catch (e) {
-      alert('Error al eliminar: ' + (e.response?.data?.error || e.message))
-    }
+function openDeleteModal(post) {
+  postToDelete.value = post
+  showDeleteModal.value = true
+}
+
+async function deletePost() {
+  if (!postToDelete.value) return
+
+  deleting.value = true
+  try {
+    await axios.delete(`/posts/${postToDelete.value.id}`)
+    await fetchPosts()
+    showDeleteModal.value = false
+    postToDelete.value = null
+  } catch (e) {
+    alert('Error al eliminar: ' + (e.response?.data?.error || e.message))
+  } finally {
+    deleting.value = false
   }
 }
 
