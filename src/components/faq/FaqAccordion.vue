@@ -1,5 +1,6 @@
 <template>
   <div class="accordion shadow-sm border-0 rounded overflow-hidden" id="faqAccordion">
+
     <div v-for="(faq, index) in faqs" :key="faq.id" class="accordion-item border-0 border-bottom">
       <h2 class="accordion-header">
         <button 

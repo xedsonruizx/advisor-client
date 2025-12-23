@@ -203,16 +203,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import axios from 'axios'
 import { Modal, Offcanvas } from 'bootstrap'
 import { useAuthStore } from '../../stores/auth'
+import { useRouter, useRoute } from 'vue-router'
 import DocSidebar from '../../components/docs/DocSidebar.vue'
 import DeleteModal from '../../components/global/DeleteModal.vue'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
 
 const auth = useAuthStore()
+const router = useRouter()
+const route = useRoute()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 
 const items = ref([])
@@ -220,6 +223,9 @@ const plans = ref([])
 const loading = ref(false)
 const loadingContent = ref(false)
 const selectedItem = ref(null)
+
+// Tree State
+const openFolders = ref(new Set())
 
 // Delete Modal
 const showDeleteModal = ref(false)
@@ -259,6 +265,47 @@ onMounted(async () => {
   })
 })
 
+// Sync URL with State (handles reload and navigation)
+watch([() => route.params.id, items], ([newId, currentItems]) => {
+  if (newId && currentItems.length > 0) {
+     const item = currentItems.find(i => i.id === newId)
+     if (item) {
+        // Expand folders to show this item
+        expandToItem(item)
+        
+        // Select item if not already selected
+        if (selectedItem.value?.id !== newId) {
+           selectItem(item, false)
+        }
+     }
+  } else if (!newId && selectedItem.value) {
+     // If navigating back to root /docs
+     selectedItem.value = null
+  }
+}, { immediate: true, deep: false })
+
+function toggleFolder(id) {
+  // Check if locked
+  const item = items.value.find(i => i.id === id)
+  if (item?.isLocked) return
+
+  if (openFolders.has(id)) {
+    openFolders.delete(id)
+  } else {
+    openFolders.add(id)
+  }
+}
+
+function expandToItem(item) {
+  let current = item
+  while (current.parentId) {
+    openFolders.add(current.parentId)
+    const parent = items.value.find(i => i.id === current.parentId)
+    if (!parent) break
+    current = parent
+  }
+}
+
 async function fetchTree() {
   loading.value = true
   try {
@@ -285,11 +332,16 @@ async function selectItemMobile(item) {
     offcanvasInstance.hide()
 }
 
-async function selectItem(item) {
+async function selectItem(item, updateUrl = true) {
   // If clicking the same item, do nothing
   if (selectedItem.value?.id === item.id) return
   
   selectedItem.value = item
+  
+  if (updateUrl) {
+    const slug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+    router.push(`/docs/${item.id}/${slug}`)
+  }
   
   // If locked, we don't fetch content (or backend will reject)
   if (item.isLocked) return

@@ -12,6 +12,7 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
             <li class="nav-item"><router-link class="nav-link" to="/">Inicio</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/memberships">Membresías</router-link></li>
+
             <li class="nav-item"><router-link class="nav-link" to="/docs">Biblioteca</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/posts">Avisos</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/faq">Preguntas</router-link></li>
@@ -19,18 +20,30 @@
             <li v-if="!user" class="nav-item ms-lg-3"><router-link class="btn btn-outline-primary btn-sm px-4" to="/login">Ingresar</router-link></li>
             <li v-if="!user" class="nav-item ms-2"><router-link class="btn btn-primary btn-sm px-4" to="/register">Registrarse</router-link></li>
             
-            <li v-if="user" class="nav-item dropdown ms-lg-3">
-              <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <li v-if="user" class="nav-item dropdown ms-lg-3" ref="userDropdownRef">
+              <a 
+                class="nav-link dropdown-toggle d-flex align-items-center" 
+                href="#" 
+                id="userDropdown" 
+                role="button" 
+                @click.prevent="toggleUserDropdown"
+                :class="{ show: showUserDropdown }"
+                aria-expanded="false"
+              >
                 <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2" style="width: 32px; height: 32px; font-size: 0.9rem;">
                   {{ user.name.charAt(0).toUpperCase() }}
                 </div>
                 <span>{{ user.name }}</span>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userDropdown">
-                <li><router-link class="dropdown-item" to="/dashboard">Mi Panel</router-link></li>
-                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/users">Usuarios</router-link></li>
-                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/evaluations">Evaluaciones</router-link></li>
-                <li><router-link class="dropdown-item" to="/profile">Perfil</router-link></li>
+              <ul 
+                class="dropdown-menu dropdown-menu-end shadow-sm border-0" 
+                :class="{ show: showUserDropdown }"
+                aria-labelledby="userDropdown"
+              >
+                <li><router-link class="dropdown-item" to="/dashboard" @click="showUserDropdown = false">Mi Panel</router-link></li>
+                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/users" @click="showUserDropdown = false">Usuarios</router-link></li>
+                <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin/evaluations" @click="showUserDropdown = false">Evaluaciones</router-link></li>
+                <li><router-link class="dropdown-item" to="/profile" @click="showUserDropdown = false">Perfil</router-link></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><button class="dropdown-item text-danger" @click="logout">Cerrar Sesión</button></li>
               </ul>
@@ -88,7 +101,7 @@
 
 <script setup>
 import { useAuthStore } from './stores/auth'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import router from './router.js'
 import WhatsAppButton from './components/global/WhatsAppButton.vue'
 
@@ -96,10 +109,32 @@ const auth = useAuthStore()
 const user = computed(() => auth.user)
 const isAdmin = computed(() => user.value?.role === 'admin')
 const appTitle = import.meta.env.VITE_APP_TITLE
- 
+
+const showUserDropdown = ref(false)
+const userDropdownRef = ref(null)
+
+function toggleUserDropdown() {
+  showUserDropdown.value = !showUserDropdown.value
+}
+
+function closeUserDropdown(e) {
+  if (userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
+    showUserDropdown.value = false
+  }
+}
+
 async function logout() { 
+  showUserDropdown.value = false
   await auth.logout()
   router.push('/')
 }
-onMounted(() => auth.fetchMe())
+
+onMounted(() => {
+  auth.fetchMe()
+  document.addEventListener('click', closeUserDropdown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeUserDropdown)
+})
 </script>

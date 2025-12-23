@@ -33,7 +33,9 @@
           :items="items" 
           :parentId="item.id" 
           :selectedId="selectedId"
+          :openFolders="openFolders"
           @select="$emit('select', $event)"
+          @toggle="$emit('toggle', $event)"
         />
       </div>
     </li>
@@ -70,6 +72,10 @@ function isOpen(id) {
 }
 
 function toggleFolder(id) {
+  // Check if locked
+  const item = props.items.find(i => i.id === id)
+  if (item?.isLocked) return
+
   if (openFolders.value.has(id)) {
     openFolders.value.delete(id)
   } else {

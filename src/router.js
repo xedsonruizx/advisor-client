@@ -29,6 +29,7 @@ const routes = [
   { path: '/evaluation', component: Evaluation },
   { path: '/evaluation/results', component: Results },
   { path: '/docs', component: DocsLibrary },
+  { path: '/docs/:id/:slug?', component: DocsLibrary },
   { path: '/memberships', component: Memberships },
   { path: '/dashboard', component: Dashboard },
   { path: '/profile', component: Profile },
